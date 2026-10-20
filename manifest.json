@@ -1,0 +1,33 @@
+{
+  "name": "Version Pin",
+  "id": "REPLACE_WITH_ID_FROM_FIGMA",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": [
+    "figma",
+    "dev"
+  ],
+  "capabilities": [
+    "inspect"
+  ],
+  "documentAccess": "dynamic-page",
+  "permissions": [
+    "currentuser"
+  ],
+  "networkAccess": {
+    "allowedDomains": [
+      "https://hooks.slack.com",
+      "https://*.webhook.office.com",
+      "https://*.logic.azure.com",
+      "https://*.powerplatform.com"
+    ],
+    "reasoning": "Posts a message to your team's Slack or Microsoft Teams channel when a screen or page becomes final or old."
+  },
+  "relaunchButtons": [
+    {
+      "command": "open",
+      "name": "Version Pin"
+    }
+  ]
+}
