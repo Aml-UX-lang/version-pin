@@ -1,0 +1,1670 @@
+<title>Version Pin</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<script>window.__VP_MODE='demo'</script>
+<style>
+/* Layout: in Figma, one 360px plugin panel. In demo mode, a mock Figma canvas + team channel on the left, the same panel on the right. */
+:root{
+  --bg:#f3f4f6; --panel:#ffffff; --fg:#17191c; --muted:#5d6570; --line:#e1e4e8; --hover:#eef1f4;
+  --accent:#3355e0; --accent-fg:#ffffff; --focus:#3355e0;
+  --final:#12784a; --final-bg:#e2f4e9; --review:#9a5a00; --review-bg:#fcefd8;
+  --draft:#5d6570; --draft-bg:#eceef1; --old:#a23539; --old-bg:#fae6e6; --copy:#6b48c8; --copy-bg:#eee8fb;
+  --build:#0b6a8a; --build-bg:#e0f2f8;
+  --canvas:#e5e7ea; --frame:#ffffff; --frame-ink:#d5d9df;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141518; --panel:#1d1f23; --fg:#e7e9ec; --muted:#9aa1ab; --line:#2f333a; --hover:#262a30;
+  --accent:#7b95ff; --accent-fg:#0c1022; --focus:#7b95ff;
+  --final:#55c98f; --final-bg:#16342a; --review:#f1b34c; --review-bg:#382a13; --draft:#a6aeb9; --draft-bg:#2a2e34;
+  --old:#f08b8e; --old-bg:#3b1f22; --copy:#b39cff; --copy-bg:#2b2346; --build:#6fd0ef; --build-bg:#123240;
+  --canvas:#0f1012; --frame:#272a30; --frame-ink:#3a3f47; color-scheme:dark } }
+:root[data-theme="dark"], :root.figma-dark{
+  --bg:#141518; --panel:#1d1f23; --fg:#e7e9ec; --muted:#9aa1ab; --line:#2f333a; --hover:#262a30;
+  --accent:#7b95ff; --accent-fg:#0c1022; --focus:#7b95ff;
+  --final:#55c98f; --final-bg:#16342a; --review:#f1b34c; --review-bg:#382a13; --draft:#a6aeb9; --draft-bg:#2a2e34;
+  --old:#f08b8e; --old-bg:#3b1f22; --copy:#b39cff; --copy-bg:#2b2346; --build:#6fd0ef; --build-bg:#123240;
+  --canvas:#0f1012; --frame:#272a30; --frame-ink:#3a3f47; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--panel);color:var(--fg);font:13px/1.45 var(--sans);margin:0}
+body.demo{background:var(--bg);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 32px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- demo shell ---------- */
+.intro{display:none;max-width:1220px;margin:0 auto 16px}
+body.demo .intro{display:block}
+.intro h1{font-size:22px;margin:0 0 4px;text-wrap:balance;letter-spacing:-.01em}
+.intro p{margin:0;color:var(--muted);max-width:76ch}
+.app{display:block}
+body.demo .app{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;max-width:1220px;margin:0 auto;align-items:start}
+@media (max-width:860px){ body.demo .app{grid-template-columns:minmax(0,1fr)} }
+.leftcol{display:none}
+body.demo .leftcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+.canvas-wrap{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--canvas);min-width:0}
+body.demo .panel{border:1px solid var(--line);border-radius:10px;overflow:hidden;position:sticky;top:12px}
+
+.cbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--panel);border-bottom:1px solid var(--line)}
+.who{font-size:12px;color:var(--muted)}
+.modes{display:flex;background:var(--hover);border-radius:8px;padding:2px}
+.modes button{border:0;background:none;padding:5px 10px;border-radius:6px;color:var(--muted)}
+.modes button[aria-pressed="true"]{background:var(--panel);color:var(--fg);font-weight:600;box-shadow:0 1px 2px rgb(0 0 0/.12)}
+.cmain{display:grid;grid-template-columns:200px minmax(0,1fr);min-height:440px}
+@media (max-width:640px){ .cmain{grid-template-columns:minmax(0,1fr)} }
+.pagelist{background:var(--panel);border-right:1px solid var(--line);padding:8px 6px;display:flex;flex-direction:column;gap:1px}
+.pagelist .lbl{font-size:11px;color:var(--muted);font-weight:600;padding:2px 8px 6px}
+.pagelist button{border:0;background:none;text-align:left;padding:5px 8px;border-radius:6px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pagelist button:hover{background:var(--hover)}
+.pagelist button[aria-current="page"]{background:var(--hover);font-weight:600}
+.pagelist hr{border:0;border-top:1px solid var(--line);margin:6px 8px}
+.chint{padding:8px 12px 0;color:var(--muted);font-size:12px}
+.cbody{overflow-x:auto;padding:14px 14px 24px;display:flex;flex-direction:column;gap:26px;min-width:0}
+.cbanner{border-radius:8px;padding:12px 14px;color:#fff;max-width:640px}
+.cbanner b{display:block;font-size:15px;letter-spacing:.02em}
+.cbanner span{font-size:12px;opacity:.95}
+.cbanner .cbtn{display:inline-block;margin-top:10px;border:0;border-radius:7px;background:#fff;color:#a23539;font-weight:700;padding:6px 12px;font-size:13px}
+.cbanner.old{background:#a23539}.cbanner.review{background:#c47a0a}.cbanner.draft{background:#69717c}.cbanner.final{background:#12784a}
+.crow{display:flex;gap:22px;align-items:flex-end;min-width:max-content}
+.fwrap{display:flex;flex-direction:column;gap:5px;width:128px}
+.cbadge{align-self:flex-start;font:700 10px/1.25 var(--sans);color:#fff;padding:4px 7px;border-radius:5px;max-width:200px;letter-spacing:.02em}
+.cbadge.final{background:#12784a}.cbadge.review{background:#c47a0a}.cbadge.draft{background:#69717c}.cbadge.superseded{background:#a23539}
+.cbadge.ghost{visibility:hidden}
+.fname{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frame{position:relative;display:flex;flex-direction:column;gap:7px;padding:10px;height:200px;border:1px solid var(--line);background:var(--frame);border-radius:4px;text-align:left;transition:opacity .2s}
+.frame.sel{outline:2px solid var(--accent);outline-offset:1px}
+.frame.flash{animation:flash 1s ease}
+@keyframes flash{0%,100%{box-shadow:0 0 0 0 transparent}30%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 40%,transparent)}}
+@media (prefers-reduced-motion:reduce){.frame.flash{animation:none}.frame{transition:none}}
+.frame i{display:block;border-radius:3px;background:var(--frame-ink)}
+.frame .bar{height:10px;width:40%}
+.frame .hd{height:16px;width:75%;background:hsl(var(--h) 55% 55%/.75)}
+.frame .ln{height:7px}
+.frame .in{height:20px;border:1px solid var(--frame-ink);background:none}
+.frame .cta{height:22px;margin-top:auto;background:hsl(var(--h) 65% 48%)}
+.frame .img{height:46px;background:hsl(var(--h) 40% 70%/.45)}
+.rfd{font-size:10px;color:var(--final);font-weight:600}
+.empty-canvas{color:var(--muted);padding:40px 8px;text-align:center}
+
+.feed{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.feedhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line)}
+.feedhead b{font-size:13px}
+.feedhead span{font-size:12px;color:var(--muted)}
+.feed ol{list-style:none;margin:0;padding:6px 0;max-height:280px;overflow:auto}
+.feed li{display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px;padding:8px 12px}
+.feed .av{width:32px;height:32px;border-radius:7px;background:var(--final);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px}
+.feed .msg{white-space:pre-wrap;font-size:13px;min-width:0;overflow-wrap:anywhere}
+.feed .msg small{display:block;color:var(--muted);font-size:11px;margin-bottom:2px}
+.feed .none{color:var(--muted);padding:10px 12px;display:block}
+
+/* ---------- plugin panel ---------- */
+.panel{background:var(--panel);display:flex;flex-direction:column;min-height:100vh}
+body.demo .panel{min-height:640px}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px 0}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700}
+.devchip{font-size:11px;font-weight:600;color:var(--copy);background:var(--copy-bg);padding:3px 8px;border-radius:99px}
+.tabs{display:flex;gap:0;padding:8px 6px 0;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:7px 8px 8px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--fg);font-weight:600;border-color:var(--fg)}
+.tabs .count{font-size:11px;color:var(--muted);margin-left:3px}
+.tabs .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--old);margin-left:4px;vertical-align:1px}
+.pbody{padding:14px 12px 20px;display:flex;flex-direction:column;gap:16px;flex:1}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.final{color:var(--final);background:var(--final-bg)}
+.pill.review,.pill.warn{color:var(--review);background:var(--review-bg)}
+.pill.draft,.pill.none{color:var(--draft);background:var(--draft-bg)}
+.pill.superseded,.pill.old{color:var(--old);background:var(--old-bg)}
+.pill.copy{color:var(--copy);background:var(--copy-bg)}
+.pill.build{color:var(--build);background:var(--build-bg)}
+
+.hero{border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--line)}
+.hero.final{background:var(--final-bg);border-color:transparent}
+.hero.superseded{background:var(--old-bg);border-color:transparent}
+.hero.copy{background:var(--copy-bg);border-color:transparent}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.herorow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bigv{font:700 26px/1 var(--mono);letter-spacing:-.02em}
+.verdict{margin:0;font-size:14px;font-weight:600;text-wrap:balance}
+.meta{font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:7px 11px;font-weight:600}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--old)}
+.btn.small{padding:4px 8px;font-size:12px}
+.btn[disabled]{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--hover);padding:2px;border-radius:8px}
+.seg button{border:0;background:none;padding:6px 2px;border-radius:6px;font-size:12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--fg);font-weight:600;box-shadow:0 1px 2px rgb(0 0 0/.12)}
+h2{font-size:12px;margin:0;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+h3{font-size:15px;margin:0;text-wrap:balance}
+.section{display:flex;flex-direction:column;gap:8px}
+label.field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+input[type=text],input[type=url],select,textarea{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:7px 9px;width:100%;color:var(--fg)}
+textarea{resize:vertical;min-height:56px}
+.note{font-size:13px;background:var(--hover);border-radius:8px;padding:8px 10px;white-space:pre-wrap}
+
+.alert{border-radius:10px;padding:12px;background:var(--old-bg);display:flex;flex-direction:column;gap:6px}
+.alert b{color:var(--old);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.alert p{margin:0;font-weight:600}
+.pstrip{border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;border:1px solid var(--line)}
+.pstrip.old{background:var(--old-bg);border-color:transparent}
+.pstrip.final{background:var(--final-bg);border-color:transparent}
+.pstrip.review{background:var(--review-bg);border-color:transparent}
+.pstrip .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pstrip p{margin:0}
+.builders{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+.confirm{padding:12px;border-radius:10px;border:2px solid var(--accent);display:flex;flex-direction:column;gap:10px;font-size:13px}
+.confirm.danger{border-color:var(--old)}
+.confirm h3{font-size:14px}
+.confirm .warn{background:var(--review-bg);color:var(--fg);border-radius:7px;padding:8px 10px;font-size:12px}
+.checks{display:flex;flex-direction:column;gap:6px}
+.checks label{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.checks small{color:var(--muted)}
+
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.timeline li{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 6px;border-radius:7px;cursor:pointer}
+.timeline li:hover{background:var(--hover)}
+.timeline li.current{background:var(--hover);box-shadow:inset 2px 0 0 var(--accent)}
+.timeline .v{font:700 13px var(--mono)}
+.timeline .nm{min-width:0}
+.timeline .nm b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timeline .nm span{font-size:11px;color:var(--muted)}
+.timeline .right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.timeline .setfinal{font-size:11px;border:0;background:none;color:var(--accent);padding:0;font-weight:600}
+
+.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.prow{border:1px solid var(--line);border-radius:9px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.prow.current{box-shadow:inset 3px 0 0 var(--accent)}
+.prow.archived{background:var(--hover)}
+.prow .ptop{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.pname{border:0;background:none;padding:0;font-weight:600;text-align:left;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pname:hover{text-decoration:underline}
+.prow select{width:auto;padding:4px 6px;font-size:12px}
+.pdiv{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:4px 2px}
+.pdiv::before,.pdiv::after{content:"";flex:1;border-top:1px dashed var(--line)}
+
+.empty{display:flex;flex-direction:column;gap:12px;padding-top:6px}
+.empty p{margin:0;color:var(--muted)}
+.legend{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.legend li{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:start;font-size:12px;color:var(--muted)}
+
+.summary{display:flex;gap:6px;flex-wrap:wrap}
+.stat{flex:1;min-width:84px;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.stat b{display:block;font:700 18px var(--mono)}
+.stat span{font-size:11px;color:var(--muted)}
+.chips{display:flex;gap:6px}
+.chips button{border:1px solid var(--line);background:none;border-radius:99px;padding:4px 10px;font-size:12px}
+.chips button[aria-pressed="true"]{background:var(--fg);color:var(--panel);border-color:var(--fg)}
+.gcard{border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.ghead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 8px;width:100%;border:0;background:none;padding:10px 12px;text-align:left}
+.ghead:hover{background:var(--hover)}
+.ghead b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghead .meta{grid-column:1/-1}
+.gbody{border-top:1px solid var(--line);padding:6px 6px 10px;display:flex;flex-direction:column;gap:8px}
+.gactions{display:flex;gap:6px;flex-wrap:wrap;padding:0 6px}
+
+.toggle{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.toggle b{font-weight:600}
+.toggle span{grid-column:1;font-size:12px;color:var(--muted)}
+.toggle input{grid-row:1/3;grid-column:2;width:34px;height:20px;appearance:none;background:var(--frame-ink);border-radius:99px;position:relative;cursor:pointer;transition:background .15s;margin:0}
+.toggle input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}
+.toggle input:checked{background:var(--accent)}
+.toggle input:checked::after{transform:translateX(14px)}
+
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--panel);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgb(0 0 0/.2);z-index:5}
+</style>
+
+<header class="intro">
+  <h1>Version Pin</h1>
+  <p>A Figma plugin that keeps every version of a screen or page in the file and makes the final one obvious to developers. This prototype runs the real plugin code. Click frames and pages on the left and use the panel on the right. Switch to Dev Mode to see what a developer sees, and watch the team channel below the canvas for Slack or Teams messages.</p>
+</header>
+
+<div class="app">
+  <div class="leftcol">
+    <section class="canvas-wrap" aria-label="Mock Figma file">
+      <div class="cbar">
+        <span class="who" id="who"></span>
+        <div class="modes" role="group" aria-label="Editor mode">
+          <button id="m-design" aria-pressed="true">Design (Mona)</button>
+          <button id="m-dev" aria-pressed="false">Dev Mode (Ahmed)</button>
+        </div>
+      </div>
+      <div class="cmain">
+        <nav class="pagelist" id="pagelist" aria-label="Pages"></nav>
+        <div style="min-width:0">
+          <div class="chint" id="chint"></div>
+          <div class="cbody" id="canvas"></div>
+        </div>
+      </div>
+    </section>
+    <section class="feed" aria-label="Team channel preview">
+      <div class="feedhead"><b>#design-handoff</b><span>Preview of what Version Pin posts to Slack or Teams</span></div>
+      <ol id="feed"></ol>
+    </section>
+  </div>
+
+  <section class="panel" aria-label="Version Pin plugin">
+    <div class="phead">
+      <div class="brand">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="1" y="4" width="10" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".45"/><rect x="5" y="1" width="12" height="13" rx="2" fill="var(--final)"/><path d="M8 7.5l2 2 3.5-4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Version Pin
+      </div>
+      <span class="devchip" id="devchip" hidden>Dev Mode</span>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+    <div class="pbody" id="pbody"><p class="meta" style="margin:0">Loading the file…</p></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script type="text/plain" id="vp-code">// Version Pin — Figma plugin main thread.
+// Keeps every version of a screen (frame) or of a whole page in the file, and makes the final one
+// unmistakable for developers: canvas badges, page names, page banners, Dev Mode "Ready for dev",
+// a Dev Mode inspect panel, "Being built" tracking, and Slack / Teams messages.
+
+const NS = 'versionpin';
+const ARCHIVE_PAGE = 'Version archive';
+// Bump when badges or banners change look, so files are redrawn automatically on next open.
+const DECOR_VERSION = '4';
+const isDev = figma.editorType === 'dev';
+
+const STATUS_LABEL = { draft: 'DRAFT', review: 'IN REVIEW', final: 'FINAL', superseded: 'SUPERSEDED' };
+const STATUS_RGB = {
+  draft: { r: 0.42, g: 0.45, b: 0.5 },
+  review: { r: 0.8, g: 0.5, b: 0.05 },
+  final: { r: 0.07, g: 0.5, b: 0.29 },
+  superseded: { r: 0.65, g: 0.22, b: 0.23 },
+  old: { r: 0.65, g: 0.22, b: 0.23 },
+};
+const PAGE_PREFIX = { final: '✅ FINAL – ', review: '🟠 IN REVIEW – ', draft: '✏️ DRAFT – ', old: '⛔ OLD – ' };
+const PAGE_PREFIX_RE = /^(✅ FINAL|🟠 IN REVIEW|✏️ DRAFT|⛔ OLD) – /;
+const PAGE_WORD = { final: 'FINAL', review: 'IN REVIEW', draft: 'DRAFT', old: 'OLD' };
+
+let settings = {
+  badges: true, dim: true, rename: true, devStatus: true, // frames
+  badgePlace: 'above', badgeGap: 48, // badge position
+  pageNames: true, pageBanners: true, dimOldPages: true, // pages
+};
+
+figma.showUI(__html__.replace("__VP_MODE='demo'", "__VP_MODE='figma'"), { width: 360, height: 640, themeColors: true });
+
+// ---------- helpers ----------
+const get = (n, k) => n.getSharedPluginData(NS, k);
+const put = (n, k, v) => n.setSharedPluginData(NS, k, v == null ? '' : String(v));
+function userName() {
+  try { return figma.currentUser ? figma.currentUser.name : 'Someone'; } catch (e) { return 'Someone'; }
+}
+const isBadge = (n) => get(n, 'isBadge') === '1';
+const isBanner = (n) => get(n, 'isBanner') === '1';
+const isDivider = (p) => get(p, 'isDivider') === '1' || !!p.isPageDivider;
+const isCopy = (n) => get(n, 'nodeId') !== n.id; // plugin data travels with duplicates
+const baseName = (name) => name.replace(/\s·\sv\d+.*$/, '').trim();
+const pageBase = (name) => name.replace(PAGE_PREFIX_RE, '');
+const uid = () => 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const toast = (text) => figma.ui.postMessage({ type: 'toast', text });
+const realPages = () => figma.root.children.filter((p) => !isDivider(p));
+
+function pageOf(n) {
+  let c = n;
+  while (c && c.type !== 'PAGE') c = c.parent;
+  return c;
+}
+function trackedAncestor(n) {
+  let c = n;
+  while (c && c.type !== 'PAGE' && c.type !== 'DOCUMENT') {
+    if (get(c, 'group')) return c;
+    c = c.parent;
+  }
+  return null;
+}
+function topLevel(n) {
+  let c = n;
+  while (c.parent && c.parent.type !== 'PAGE' && c.parent.type !== 'SECTION') c = c.parent;
+  return c;
+}
+function stamp(n) {
+  put(n, 'updatedBy', userName());
+  put(n, 'updatedAt', new Date().toISOString());
+}
+function builders(n) {
+  try { return JSON.parse(get(n, 'building') || '[]'); } catch (e) { return []; }
+}
+function names(list) {
+  return list.map((b) => b.name).join(', ');
+}
+
+function findByKey(key) {
+  try {
+    return figma.root.findAllWithCriteria({ sharedPluginData: { namespace: NS, keys: [key] } });
+  } catch (e) {
+    // Older Figma versions: fall back to a full scan.
+    return figma.root.findAll((n) => n.getSharedPluginData(NS, key) !== '');
+  }
+}
+async function allTracked() {
+  return findByKey('group').filter((n) => get(n, 'group') && !isBadge(n));
+}
+async function groupNodes(groupId) {
+  return (await allTracked()).filter((n) => get(n, 'group') === groupId);
+}
+
+// ---------- notifications (Slack / Teams) ----------
+function getNotify() {
+  let cfg = {};
+  try { cfg = JSON.parse(figma.root.getPluginData('notify') || '{}'); } catch (e) {}
+  return Object.assign({ slack: '', teams: '', onFrames: true, onPages: true }, cfg);
+}
+// A text hyperlink to a node. With the file link available it opens the exact page or frame
+// (also from Dev Mode); otherwise Figma's own node link is used.
+function linkFor(node) {
+  const url = linkTo(node.id);
+  return url ? { type: 'URL', value: url } : { type: 'NODE', value: node.id };
+}
+function linkTo(id) {
+  return figma.fileKey ? `https://www.figma.com/design/${figma.fileKey}/?node-id=${encodeURIComponent(id.replace(':', '-'))}` : '';
+}
+function notify(kind, text, id) {
+  const cfg = getNotify();
+  if (!cfg.slack && !cfg.teams) return;
+  if (kind === 'frame' && !cfg.onFrames) return;
+  if (kind === 'page' && !cfg.onPages) return;
+  figma.ui.postMessage({ type: 'notify', text, url: linkTo(id), slack: cfg.slack, teams: cfg.teams });
+}
+
+// ---------- "being built" watch list (stored on this person's computer) ----------
+async function getWatch() {
+  return (await figma.clientStorage.getAsync('watch')) || [];
+}
+async function alerts() {
+  const out = [];
+  for (const w of await getWatch()) {
+    const n = await figma.getNodeByIdAsync(w.id);
+    if (!n || n.removed) {
+      out.push({ id: w.id, kind: w.kind, text: `“${w.label}” was deleted from the file.` });
+      continue;
+    }
+    if (w.kind === 'frame') {
+      const st = get(n, 'status');
+      if (st === 'final' || st === w.status) continue;
+      const fin = (await groupNodes(get(n, 'group'))).find((s) => get(s, 'status') === 'final' && !isCopy(s));
+      out.push({
+        id: w.id, kind: 'frame',
+        text: fin
+          ? `You're building ${get(n, 'groupName')} v${get(n, 'version')}. v${get(fin, 'version')} is now the final version.`
+          : `${get(n, 'groupName')} v${get(n, 'version')}, which you're building, is no longer final.`,
+        finalId: fin ? fin.id : null, finalLabel: fin ? 'v' + get(fin, 'version') : null, note: fin ? get(fin, 'note') : '',
+      });
+    } else {
+      const st = get(n, 'pstatus');
+      if (st === 'final' || st === w.status) continue;
+      const fp = get(n, 'finalPage') ? await figma.getNodeByIdAsync(get(n, 'finalPage')) : null;
+      out.push({
+        id: w.id, kind: 'page',
+        text: `The page “${pageBase(n.name)}” you're building is now ${st ? PAGE_WORD[st].toLowerCase() : 'unmarked'}.${fp ? ` The final page is “${pageBase(fp.name)}”.` : ''}`,
+        finalId: fp ? fp.id : null, finalLabel: fp ? pageBase(fp.name) : null, note: fp ? get(fp, 'note') : '',
+      });
+    }
+  }
+  return out;
+}
+
+async function setBuilding(id, on) {
+  const n = await figma.getNodeByIdAsync(id);
+  if (!n) return;
+  const me = userName();
+  const kind = n.type === 'PAGE' ? 'page' : 'frame';
+  const list = builders(n).filter((b) => b.name !== me);
+  if (on) list.push({ name: me, since: new Date().toISOString(), version: kind === 'frame' ? +get(n, 'version') : null });
+  let shared = true;
+  try { put(n, 'building', JSON.stringify(list)); } catch (e) { shared = false; }
+
+  let watch = (await getWatch()).filter((w) => w.id !== id);
+  if (on) {
+    watch.push({
+      id, kind, at: Date.now(),
+      status: kind === 'page' ? get(n, 'pstatus') : get(n, 'status'),
+      label: kind === 'page' ? pageBase(n.name) : `${get(n, 'groupName')} v${get(n, 'version')}`,
+    });
+  }
+  await figma.clientStorage.setAsync('watch', watch);
+
+  if (!isDev && kind === 'frame') await decorateGroup(get(n, 'group'));
+  if (!shared) toast("Saved on your computer only. Figma didn't let the plugin write to this file, so ask the designer to add you.");
+  else toast(on ? "Marked as being built by you. You'll get an alert here if it changes." : 'Removed you from the builders.');
+}
+
+async function unwatch(id) {
+  await figma.clientStorage.setAsync('watch', (await getWatch()).filter((w) => w.id !== id));
+}
+
+// ---------- state for the UI ----------
+function readMeta(n) {
+  return {
+    id: n.id, name: n.name, version: +get(n, 'version') || 0, status: get(n, 'status') || 'draft',
+    note: get(n, 'note'), updatedBy: get(n, 'updatedBy'), updatedAt: get(n, 'updatedAt'),
+    page: pageBase((pageOf(n) || {}).name || ''), isCopy: isCopy(n), building: builders(n),
+  };
+}
+function pageMeta(p, archived) {
+  return {
+    id: p.id, name: p.name, base: pageBase(p.name), status: get(p, 'pstatus'), finalPage: get(p, 'finalPage'),
+    note: get(p, 'note'), building: builders(p), updatedBy: get(p, 'updatedBy'), updatedAt: get(p, 'updatedAt'),
+    divider: isDivider(p), archived: !!archived, current: p === figma.currentPage,
+  };
+}
+function pagesState() {
+  let afterDivider = false;
+  return figma.root.children.map((p) => {
+    if (get(p, 'isDivider') === '1') afterDivider = true;
+    return pageMeta(p, afterDivider && !isDivider(p));
+  });
+}
+
+async function buildState() {
+  const map = {};
+  for (const n of await allTracked()) {
+    const id = get(n, 'group');
+    if (!map[id]) map[id] = { id, name: get(n, 'groupName'), versions: [] };
+    map[id].versions.push(readMeta(n));
+  }
+  const groups = Object.values(map)
+    .map((g) => {
+      g.versions.sort((a, b) => a.version - b.version || a.isCopy - b.isCopy);
+      const f = g.versions.find((v) => v.status === 'final' && !v.isCopy);
+      g.finalId = f ? f.id : null;
+      return g;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return {
+    type: 'state', isDev, settings, user: userName(), groups, context: context(),
+    pages: pagesState(), currentPageId: figma.currentPage.id, alerts: await alerts(),
+    notify: isDev ? null : getNotify(),
+  };
+}
+
+function selectedUntrackedTops() {
+  const sel = figma.currentPage.selection.filter((n) => !isBadge(n) && !isBanner(n));
+  return [...new Set(sel.map(topLevel))].filter((n) => !get(n, 'group') && !isBadge(n) && !isBanner(n));
+}
+function context() {
+  const sel = figma.currentPage.selection.filter((n) => !isBadge(n) && !isBanner(n));
+  if (!sel.length) return { kind: 'none' };
+  const t = trackedAncestor(sel[0]);
+  if (t) return { kind: 'tracked', nodeId: t.id, groupId: get(t, 'group') };
+  const tops = selectedUntrackedTops();
+  const suggested = tops.length ? baseName(tops[0].name).replace(/[\s_-]*(copy|final|old|new|v\d+)\b.*$/i, '').trim() : '';
+  return { kind: 'untracked', count: tops.length, suggestedName: suggested || 'Untitled screen' };
+}
+
+let pushTimer = null;
+function push() {
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    if (!ready) return;
+    try {
+      figma.ui.postMessage(await buildState());
+    } catch (e) {
+      figma.ui.postMessage({ type: 'error', text: e && e.message ? e.message : String(e) });
+    }
+  }, 30);
+}
+let ready = false;
+
+// ---------- frame decoration ----------
+// Removes the badge. If someone dragged it away from where the plugin put it,
+// remember that offset so the next badge appears in the same place.
+async function removeBadge(n) {
+  const id = get(n, 'badgeId');
+  if (id) {
+    const b = await figma.getNodeByIdAsync(id);
+    if (b && !b.removed && get(b, 'for') === n.id) {
+      if (b.parent === n.parent && !resettingBadges) {
+        const dx = Math.round(b.x - n.x), dy = Math.round(b.y - n.y);
+        if (`${dx},${dy}` !== get(b, 'autoOffset')) put(n, 'badgeOffset', `${dx},${dy}`);
+      }
+      b.remove();
+    }
+  }
+  put(n, 'badgeId', '');
+}
+
+let resettingBadges = false;
+async function resetBadges() {
+  resettingBadges = true;
+  try {
+    for (const n of await allTracked()) put(n, 'badgeOffset', '');
+    await refreshAll();
+  } finally {
+    resettingBadges = false;
+  }
+}
+
+function placeBadge(f, n) {
+  const custom = get(n, 'badgeOffset');
+  const gap = settings.badgeGap;
+  let dx = 0, dy = -(f.height + gap);
+  if (settings.badgePlace === 'below') dy = n.height + gap;
+  if (settings.badgePlace === 'left') { dx = -(f.width + gap); dy = 0; }
+  put(f, 'autoOffset', `${Math.round(dx)},${Math.round(dy)}`);
+  if (custom) [dx, dy] = custom.split(',').map(Number);
+  f.x = n.x + dx;
+  f.y = n.y + dy;
+}
+
+async function addBadge(n, st, v, fin) {
+  const finalVersion = fin ? +get(fin, 'version') : null;
+  if (!n.parent || n.parent.type === 'DOCUMENT') return;
+  await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
+  const f = figma.createFrame();
+  n.parent.appendChild(f);
+  f.name = 'Version Pin badge';
+  put(f, 'isBadge', '1');
+  put(f, 'dv', DECOR_VERSION);
+  put(f, 'for', n.id);
+  f.layoutMode = 'HORIZONTAL';
+  f.primaryAxisSizingMode = 'AUTO';
+  f.counterAxisSizingMode = 'AUTO';
+  f.paddingLeft = f.paddingRight = 10;
+  f.paddingTop = f.paddingBottom = 5;
+  f.cornerRadius = 6;
+  f.fills = [{ type: 'SOLID', color: STATUS_RGB[st] }];
+  const t = figma.createText();
+  t.fontName = { family: 'Inter', style: 'Bold' };
+  t.fontSize = 12;
+  t.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+  let label = st === 'final' ? `FINAL · v${v}` : `v${v} · ${STATUS_LABEL[st]}`;
+  if (st !== 'final' && finalVersion) label += `  →  final is v${finalVersion}`;
+  const b = builders(n);
+  if (b.length) label += `  ·  being built by ${names(b)}`;
+  t.characters = label;
+  if (fin) {
+    const part = `final is v${finalVersion}`;
+    const i = label.indexOf(part);
+    if (i >= 0) {
+      try { t.setRangeHyperlink(i, i + part.length, linkFor(fin)); t.setRangeTextDecoration(i, i + part.length, 'UNDERLINE'); } catch (e) {}
+    }
+  }
+  f.appendChild(t);
+  placeBadge(f, n); // not locked: designers can drag it, and the plugin keeps the new spot
+  put(n, 'badgeId', f.id);
+}
+
+async function decorate(n, fin) {
+  const st = get(n, 'status') || 'draft';
+  const v = +get(n, 'version');
+  const copy = isCopy(n);
+
+  if (settings.rename && !copy) {
+    const suffix = st === 'final' ? ' ✓ FINAL' : st === 'superseded' ? ' · old' : '';
+    n.name = `${baseName(n.name)} · v${v}${suffix}`;
+  }
+  if (settings.dim && st === 'superseded' && !copy) {
+    if (get(n, 'origOpacity') === '') put(n, 'origOpacity', n.opacity);
+    n.opacity = 0.45;
+  } else if (get(n, 'origOpacity') !== '') {
+    n.opacity = +get(n, 'origOpacity');
+    put(n, 'origOpacity', '');
+  }
+  if (settings.devStatus && 'devStatus' in n) {
+    try {
+      if (st === 'final' && !copy) n.devStatus = { type: 'READY_FOR_DEV', description: `Final version (v${v}), marked with Version Pin` };
+      else if (n.devStatus && n.devStatus.type === 'READY_FOR_DEV') n.devStatus = null;
+    } catch (e) { /* only top-level frames and sections have a dev status */ }
+  }
+  if (copy) return;
+  await removeBadge(n);
+  if (settings.badges) await addBadge(n, st, v, fin);
+}
+
+async function decorateGroup(groupId) {
+  const nodes = await groupNodes(groupId);
+  const fin = nodes.find((n) => get(n, 'status') === 'final' && !isCopy(n));
+  for (const n of nodes) await decorate(n, fin);
+}
+
+// ---------- page decoration ----------
+async function removeBanner(p) {
+  const id = get(p, 'bannerId');
+  if (id) {
+    const b = await figma.getNodeByIdAsync(id);
+    if (b && !b.removed) b.remove();
+  }
+  put(p, 'bannerId', '');
+}
+
+async function addBanner(p, st) {
+  await figma.loadFontAsync({ family: 'Inter', style: 'Bold' });
+  await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+  const kids = p.children.filter((c) => !isBanner(c));
+  let minX = 0, minY = 0, maxX = 1200;
+  if (kids.length) {
+    minX = Math.min(...kids.map((c) => c.x));
+    minY = Math.min(...kids.map((c) => c.y));
+    maxX = Math.max(...kids.map((c) => c.x + c.width));
+  }
+  const fp = get(p, 'finalPage') ? await figma.getNodeByIdAsync(get(p, 'finalPage')) : null;
+  const title = {
+    old: 'NOT FINAL · OLD VERSION',
+    review: 'IN REVIEW · NOT APPROVED YET',
+    draft: 'DRAFT · WORK IN PROGRESS',
+    final: 'FINAL · BUILD FROM THIS PAGE',
+  }[st];
+  const sub = {
+    old: fp ? `Use the page “${pageBase(fp.name)}” instead. This page is kept as history.` : 'This page is kept as history. Ask the designer which page is final.',
+    review: "Don't start building until this page is marked final.",
+    draft: "Don't build from this page yet.",
+    final: `Marked final by ${get(p, 'updatedBy') || 'the designer'} on ${new Date(get(p, 'updatedAt') || Date.now()).toLocaleDateString()}.`,
+  }[st];
+
+  const f = figma.createFrame();
+  p.appendChild(f);
+  f.name = 'Version Pin page banner';
+  put(f, 'isBanner', '1');
+  put(f, 'dv', DECOR_VERSION);
+  f.layoutMode = 'VERTICAL';
+  const w = Math.max(720, maxX - minX);
+  // Scale with the content so the banner stays readable when the page is zoomed out.
+  const k = Math.max(1, w / 1400);
+  f.resize(w, 100);
+  f.primaryAxisSizingMode = 'AUTO';
+  f.counterAxisSizingMode = 'FIXED';
+  f.paddingLeft = f.paddingRight = Math.round(40 * k);
+  f.paddingTop = f.paddingBottom = Math.round(28 * k);
+  f.itemSpacing = Math.round(8 * k);
+  f.cornerRadius = Math.round(16 * k);
+  f.fills = [{ type: 'SOLID', color: STATUS_RGB[st] }];
+  for (const [text, style, size] of [[title, 'Bold', Math.round(48 * k)], [sub, 'Regular', Math.round(24 * k)]]) {
+    const t = figma.createText();
+    t.fontName = { family: 'Inter', style };
+    t.fontSize = size;
+    t.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+    t.characters = text;
+    f.appendChild(t);
+    t.layoutAlign = 'STRETCH';
+    t.textAutoResize = 'HEIGHT';
+  }
+  if (st === 'old' && fp) {
+    const btn = figma.createFrame();
+    btn.name = 'Go to final page';
+    btn.layoutMode = 'HORIZONTAL';
+    btn.primaryAxisSizingMode = 'AUTO';
+    btn.counterAxisSizingMode = 'AUTO';
+    btn.paddingLeft = btn.paddingRight = Math.round(24 * k);
+    btn.paddingTop = btn.paddingBottom = Math.round(12 * k);
+    btn.cornerRadius = Math.round(10 * k);
+    btn.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+    const bt = figma.createText();
+    bt.fontName = { family: 'Inter', style: 'Bold' };
+    bt.fontSize = Math.round(26 * k);
+    bt.fills = [{ type: 'SOLID', color: STATUS_RGB.old }];
+    bt.characters = `Go to final page “${pageBase(fp.name)}”  →`;
+    try { bt.setRangeHyperlink(0, bt.characters.length, linkFor(fp)); } catch (e) {}
+    btn.appendChild(bt);
+    f.appendChild(btn);
+  }
+  // Dev Mode shows annotations on the canvas without running any plugin.
+  try {
+    const url = fp ? linkTo(fp.id) : '';
+    const md = st === 'old'
+      ? (fp ? (url ? `**Not final.** [Go to final page “${pageBase(fp.name)}”](${url})` : `**Not final.** Final page: “${pageBase(fp.name)}”`) : '**Not final.** This page is kept as history.')
+      : `**${PAGE_WORD[st]}** · ${sub}`;
+    f.annotations = [{ labelMarkdown: md }];
+  } catch (e) { /* annotations not available */ }
+  f.x = minX;
+  f.y = minY - f.height - Math.round(200 * k); // leave room for section and frame titles
+  f.locked = true;
+  put(p, 'bannerId', f.id);
+}
+
+async function decoratePage(p) {
+  if (isDivider(p)) return;
+  const st = get(p, 'pstatus');
+  if (settings.pageNames) p.name = st ? PAGE_PREFIX[st] + pageBase(p.name) : pageBase(p.name);
+  await p.loadAsync();
+  await removeBanner(p);
+  if (settings.pageBanners && st) await addBanner(p, st);
+  for (const c of p.children) {
+    if (isBanner(c) || isBadge(c)) continue;
+    const dimIt = settings.dimOldPages && st === 'old' && get(c, 'origOpacity') === '';
+    if (dimIt) {
+      if (get(c, 'pageDimOrig') === '') put(c, 'pageDimOrig', c.opacity);
+      c.opacity = 0.45;
+    } else if (get(c, 'pageDimOrig') !== '') {
+      c.opacity = +get(c, 'pageDimOrig');
+      put(c, 'pageDimOrig', '');
+    }
+  }
+}
+
+async function cleanOrphans() {
+  const badges = findByKey('isBadge');
+  for (const b of badges) {
+    const owner = await figma.getNodeByIdAsync(get(b, 'for'));
+    if (!owner || owner.removed || get(owner, 'badgeId') !== b.id) b.remove();
+  }
+}
+
+async function refreshAll() {
+  const ids = [...new Set((await allTracked()).map((n) => get(n, 'group')))];
+  for (const id of ids) await decorateGroup(id);
+  for (const p of realPages()) await decoratePage(p);
+  await cleanOrphans();
+}
+
+// ---------- frame actions ----------
+function initNode(n, groupId, groupName, version) {
+  put(n, 'group', groupId);
+  put(n, 'groupName', groupName);
+  put(n, 'version', version);
+  put(n, 'status', 'draft');
+  put(n, 'nodeId', n.id);
+  stamp(n);
+  n.setRelaunchData({ open: 'See which version of this screen is final' });
+}
+const byPosition = (a, b) =>
+  a.absoluteTransform[0][2] - b.absoluteTransform[0][2] || a.absoluteTransform[1][2] - b.absoluteTransform[1][2];
+
+async function createGroup(name) {
+  const tops = selectedUntrackedTops().sort(byPosition);
+  if (!tops.length) return toast('Select one or more frames first.');
+  const id = uid();
+  const clean = (name || '').trim() || 'Untitled screen';
+  tops.forEach((n, i) => initNode(n, id, clean, i + 1));
+  await decorateGroup(id);
+  toast(`Tracking ${tops.length} version${tops.length > 1 ? 's' : ''} of “${clean}”.`);
+}
+
+async function addVersions(groupId) {
+  const tops = selectedUntrackedTops().sort(byPosition);
+  if (!tops.length) return toast('Select the new frames first.');
+  const nodes = (await groupNodes(groupId)).filter((n) => !isCopy(n));
+  if (!nodes.length) return toast('That screen no longer exists.');
+  let max = Math.max(...nodes.map((n) => +get(n, 'version')));
+  const name = get(nodes[0], 'groupName');
+  tops.forEach((n) => initNode(n, groupId, name, ++max));
+  await decorateGroup(groupId);
+  toast(`Added as v${max - tops.length + 1}${tops.length > 1 ? '–v' + max : ''} of “${name}”.`);
+}
+
+async function setStatus(id, status) {
+  const n = await figma.getNodeByIdAsync(id);
+  if (!n) return;
+  const groupId = get(n, 'group');
+  const v = +get(n, 'version');
+  let prevFinal = null;
+  const replacedBuilders = [];
+  if (status === 'final') {
+    for (const s of await groupNodes(groupId)) {
+      if (s.id === n.id || isCopy(s)) continue;
+      const st = get(s, 'status');
+      if (st === 'final') prevFinal = +get(s, 'version');
+      // Older versions and any previous final become superseded; newer drafts keep their status.
+      if (st === 'final' || +get(s, 'version') < v) {
+        put(s, 'status', 'superseded');
+        stamp(s);
+      }
+      for (const b of builders(s)) replacedBuilders.push(`${b.name} (v${get(s, 'version')})`);
+    }
+  }
+  put(n, 'status', status);
+  stamp(n);
+  await decorateGroup(groupId);
+
+  if (status === 'final') {
+    toast(`v${v} is now the final version.`);
+    const name = get(n, 'groupName');
+    let text = `✅ ${name}: v${v} is now FINAL${prevFinal ? ` (replaces v${prevFinal})` : ''}.`;
+    if (get(n, 'note')) text += `\nWhat changed: ${get(n, 'note')}`;
+    if (replacedBuilders.length) text += `\n⚠️ Being built from an older version: ${replacedBuilders.join(', ')}. Please switch to v${v}.`;
+    text += `\nMarked by ${userName()}.`;
+    notify('frame', text, n.id);
+  }
+}
+
+async function renumber(id) {
+  const n = await figma.getNodeByIdAsync(id);
+  if (!n) return;
+  const groupId = get(n, 'group');
+  const originals = (await groupNodes(groupId)).filter((s) => !isCopy(s));
+  const next = Math.max(0, ...originals.map((s) => +get(s, 'version'))) + 1;
+  put(n, 'badgeId', '');
+  put(n, 'nodeId', n.id);
+  put(n, 'version', next);
+  put(n, 'status', 'draft');
+  put(n, 'building', '');
+  stamp(n);
+  await decorateGroup(groupId);
+  toast(`Tracked as v${next}.`);
+}
+
+async function setNote(id, note) {
+  const n = await figma.getNodeByIdAsync(id);
+  if (!n) return;
+  put(n, 'note', note);
+  stamp(n);
+}
+
+async function jump(id) {
+  const n = await figma.getNodeByIdAsync(id);
+  if (!n) return toast('That item was deleted.');
+  if (n.type === 'PAGE') {
+    await figma.setCurrentPageAsync(n);
+    return;
+  }
+  const page = pageOf(n);
+  if (page && page !== figma.currentPage) await figma.setCurrentPageAsync(page);
+  figma.viewport.scrollAndZoomIntoView([n]);
+  try { figma.currentPage.selection = [n]; } catch (e) {}
+}
+
+async function archiveFrames(groupId) {
+  const old = (await groupNodes(groupId)).filter(
+    (n) => get(n, 'status') === 'superseded' && !isCopy(n) && pageOf(n).name !== ARCHIVE_PAGE
+  );
+  if (!old.length) return toast('No old versions to archive.');
+  let page = figma.root.children.find((p) => p.name === ARCHIVE_PAGE);
+  if (!page) {
+    page = figma.createPage();
+    page.name = ARCHIVE_PAGE;
+  }
+  await page.loadAsync();
+  let x = page.children.reduce((m, c) => Math.max(m, c.x + c.width), 0) + (page.children.length ? 200 : 0);
+  for (const n of old.sort(byPosition)) {
+    await removeBadge(n);
+    page.appendChild(n);
+    n.x = x;
+    n.y = 0;
+    x += n.width + 80;
+  }
+  await decorateGroup(groupId);
+  toast(`Moved ${old.length} old version${old.length > 1 ? 's' : ''} to the “${ARCHIVE_PAGE}” page.`);
+}
+
+async function untrack(groupId) {
+  const nodes = await groupNodes(groupId);
+  for (const n of nodes) {
+    if (!isCopy(n)) await removeBadge(n);
+    if (get(n, 'origOpacity') !== '') n.opacity = +get(n, 'origOpacity');
+    if (settings.rename) n.name = baseName(n.name);
+    for (const k of ['group', 'groupName', 'version', 'status', 'note', 'updatedBy', 'updatedAt', 'origOpacity', 'nodeId', 'badgeId', 'building'])
+      put(n, k, '');
+    n.setRelaunchData({});
+  }
+  toast(`Stopped tracking ${nodes.length} frame${nodes.length > 1 ? 's' : ''}. The frames are untouched.`);
+}
+
+// ---------- page actions ----------
+function dividerPage() {
+  return figma.root.children.find((p) => get(p, 'isDivider') === '1');
+}
+function unarchivePage(p) {
+  const div = dividerPage();
+  if (!div) return;
+  const di = figma.root.children.indexOf(div);
+  if (figma.root.children.indexOf(p) > di) figma.root.insertChild(di, p);
+}
+
+async function setPageStatus(id, status, opts) {
+  opts = opts || {};
+  const p = await figma.getNodeByIdAsync(id);
+  if (!p || p.type !== 'PAGE') return;
+  const st = status === 'none' ? '' : status;
+  const affected = new Set([p]);
+  const alsoOld = opts.alsoOld || [];
+  const nowOld = [];
+  const hitBuilders = [];
+
+  if (st === 'final') {
+    for (const oid of alsoOld) {
+      const o = await figma.getNodeByIdAsync(oid);
+      if (!o || o === p) continue;
+      put(o, 'pstatus', 'old');
+      put(o, 'finalPage', p.id);
+      stamp(o);
+      affected.add(o);
+      nowOld.push(pageBase(o.name));
+      for (const b of builders(o)) hitBuilders.push(`${b.name} (“${pageBase(o.name)}”)`);
+    }
+    for (const q of realPages()) {
+      if (get(q, 'pstatus') === 'old' && alsoOld.includes(get(q, 'finalPage'))) {
+        put(q, 'finalPage', p.id);
+        affected.add(q);
+      }
+    }
+    put(p, 'finalPage', '');
+  } else if (st === 'old') {
+    let fid = opts.finalPageId;
+    if (!fid) {
+      const f = realPages().find((q) => q !== p && get(q, 'pstatus') === 'final');
+      fid = f ? f.id : '';
+    }
+    put(p, 'finalPage', fid);
+    for (const q of realPages()) {
+      if (q !== p && get(q, 'finalPage') === p.id) {
+        put(q, 'finalPage', fid);
+        affected.add(q);
+      }
+    }
+    for (const b of builders(p)) hitBuilders.push(b.name);
+  } else {
+    put(p, 'finalPage', '');
+  }
+  put(p, 'pstatus', st);
+  stamp(p);
+  if (st !== 'old') unarchivePage(p);
+  for (const q of realPages()) if (get(q, 'finalPage') === p.id) affected.add(q);
+  for (const q of affected) await decoratePage(q);
+
+  const base = pageBase(p.name);
+  if (st === 'final') {
+    toast(`“${base}” is now the final page.`);
+    let text = `✅ Page “${base}” is now FINAL. Build from this page.`;
+    if (nowOld.length) text += `\nNow old (kept as history): ${nowOld.map((x) => `“${x}”`).join(', ')}.`;
+    if (get(p, 'note')) text += `\nWhat changed: ${get(p, 'note')}`;
+    if (hitBuilders.length) text += `\n⚠️ Being built from an old page: ${hitBuilders.join(', ')}. Please switch to “${base}”.`;
+    text += `\nMarked by ${userName()}.`;
+    notify('page', text, p.id);
+  } else if (st === 'old') {
+    const fp = get(p, 'finalPage') ? await figma.getNodeByIdAsync(get(p, 'finalPage')) : null;
+    let text = `⛔ Page “${base}” is now OLD.${fp ? ` The final page is “${pageBase(fp.name)}”.` : ''}`;
+    if (hitBuilders.length) text += `\n⚠️ Being built from this page: ${hitBuilders.join(', ')}. Please switch${fp ? ` to “${pageBase(fp.name)}”` : ''}.`;
+    text += `\nMarked by ${userName()}.`;
+    notify('page', text, p.id);
+  } else if (st === 'review') {
+    notify('page', `🟠 Page “${base}” is ready for review. Don't build from it yet.\nMarked by ${userName()}.`, p.id);
+  }
+}
+
+async function setPageNote(id, note) {
+  const p = await figma.getNodeByIdAsync(id);
+  if (!p) return;
+  put(p, 'note', note);
+  stamp(p);
+}
+
+async function archivePages() {
+  const old = realPages().filter((p) => get(p, 'pstatus') === 'old');
+  if (!old.length) return toast('No old pages to archive.');
+  let div = dividerPage();
+  if (!div) {
+    div = figma.createPage();
+    div.name = '---';
+    put(div, 'isDivider', '1');
+  }
+  const rest = figma.root.children.filter((p) => p !== div && !old.includes(p));
+  [...rest, div, ...old].forEach((p, i) => figma.root.insertChild(i, p));
+  toast(`Moved ${old.length} old page${old.length > 1 ? 's' : ''} below the archive divider.`);
+}
+
+// ---------- wiring ----------
+const DEV_ALLOWED = new Set(['jump', 'building', 'unwatch', 'switchBuilding']);
+
+figma.ui.onmessage = async (msg) => {
+  if (isDev && !DEV_ALLOWED.has(msg.type)) return toast('Dev Mode is read-only.');
+  try {
+    switch (msg.type) {
+      case 'create': await createGroup(msg.name); break;
+      case 'add': await addVersions(msg.groupId); break;
+      case 'status': await setStatus(msg.id, msg.status); break;
+      case 'renumber': await renumber(msg.id); break;
+      case 'note': await setNote(msg.id, msg.note); break;
+      case 'jump': await jump(msg.id); break;
+      case 'archive': await archiveFrames(msg.groupId); break;
+      case 'untrack': await untrack(msg.groupId); break;
+      case 'pageStatus': await setPageStatus(msg.id, msg.status, msg.opts); break;
+      case 'pageNote': await setPageNote(msg.id, msg.note); break;
+      case 'archivePages': await archivePages(); break;
+      case 'building': await setBuilding(msg.id, msg.on); break;
+      case 'unwatch': await unwatch(msg.id); break;
+      case 'switchBuilding':
+        await setBuilding(msg.from, false);
+        await setBuilding(msg.to, true);
+        break;
+      case 'settings':
+        settings = Object.assign({}, settings, msg.settings);
+        settings.badgeGap = Math.max(0, Math.min(2000, +settings.badgeGap || 0));
+        await figma.clientStorage.setAsync('settings', settings);
+        if ('badgePlace' in msg.settings || 'badgeGap' in msg.settings) await resetBadges();
+        else await refreshAll();
+        break;
+      case 'setNotify':
+        figma.root.setPluginData('notify', JSON.stringify(Object.assign(getNotify(), msg.cfg)));
+        toast('Notification settings saved for everyone using Version Pin in this file.');
+        break;
+      case 'testNotify': {
+        const cfg = getNotify();
+        if (!cfg.slack && !cfg.teams) { toast('Add a Slack or Teams webhook URL first.'); break; }
+        figma.ui.postMessage({ type: 'notify', text: `👋 Version Pin is connected. Version changes in “${figma.root.name}” will be posted here.`, url: '', slack: cfg.slack, teams: cfg.teams });
+        break;
+      }
+      case 'refresh': await refreshAll(); toast('Badges, banners and labels refreshed.'); break;
+      case 'resetBadges': await resetBadges(); toast('All badges moved back to the default position.'); break;
+    }
+  } catch (e) {
+    toast('Something went wrong: ' + (e && e.message ? e.message : e));
+  }
+  push();
+};
+
+figma.on('selectionchange', push);
+figma.on('currentpagechange', push);
+
+(async () => {
+  try {
+    const saved = await figma.clientStorage.getAsync('settings');
+    if (saved) settings = Object.assign({}, settings, saved);
+    await figma.loadAllPagesAsync();
+    // Redraw badges and banners made by an older version of the plugin (Design mode only).
+    if (!isDev) {
+      const stale = [...findByKey('isBadge'), ...findByKey('isBanner')].some((n) => get(n, 'dv') !== DECOR_VERSION);
+      if (stale) {
+        await refreshAll();
+        toast('Updated badges and banners to the latest plugin version.');
+      }
+    }
+  } catch (e) {
+    figma.ui.postMessage({ type: 'error', text: 'Could not load the file: ' + (e && e.message ? e.message : e) });
+  }
+  ready = true;
+  push();
+})();
+</script>
+<script>
+(function(){
+const MODE = window.__VP_MODE;
+if (MODE === 'demo') document.body.classList.add('demo');
+
+const LABEL = {draft:'Draft', review:'In review', final:'Final', superseded:'Superseded', copy:'Untracked copy', old:'Old', none:'No status'};
+let S = null, tab = 'selection', filter = 'all', expanded = new Set(), confirmUntrack = null, pending = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pill = (st) => `<span class="pill ${st}">${LABEL[st]}</span>`;
+function ago(iso){
+  if(!iso) return '';
+  const s = (Date.now() - new Date(iso).getTime())/1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.round(s/60) + ' min ago';
+  if (s < 86400) return Math.round(s/3600) + ' h ago';
+  const d = Math.round(s/86400); return d === 1 ? 'yesterday' : d + ' days ago';
+}
+const by = (v) => v.updatedBy ? `${esc(v.updatedBy)} · ${ago(v.updatedAt)}` : '';
+const buildChips = (list) => list.map(b => `<span class="pill build">Being built by ${esc(b.name)}${b.since ? ' · ' + ago(b.since) : ''}</span>`).join('');
+const mine = (list) => list.some(b => b.name === S.user);
+
+let send = (msg) => parent.postMessage({pluginMessage: msg}, '*');
+let onNotify = deliver;
+function receive(m){
+  if (!m) return;
+  if (m.type === 'state'){ S = m; render(); if (window.__vpDraw) window.__vpDraw(); }
+  if (m.type === 'toast') toast(m.text);
+  if (m.type === 'notify') onNotify(m);
+  if (m.type === 'error') $('pbody').innerHTML = `<div class="alert" role="alert"><b>Version Pin couldn't read this file</b>
+    <p>${esc(m.text)}</p><div class="meta">Close and reopen the plugin. If it happens again, send this message to whoever maintains the plugin.</div></div>`;
+}
+window.__vpReceive = receive;
+window.addEventListener('message', e => receive(e.data && e.data.pluginMessage));
+
+let toastT;
+function toast(text){
+  const t = $('toast'); t.textContent = text; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200);
+}
+
+// Slack accepts form-encoded payloads without a CORS preflight. Teams workflows receive JSON as text.
+async function deliver(m){
+  const text = m.text + (m.url ? `\n${m.url}` : '');
+  const jobs = [];
+  if (m.slack) jobs.push(fetch(m.slack, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'payload=' + encodeURIComponent(JSON.stringify({text}))}));
+  if (m.teams) jobs.push(fetch(m.teams, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify({type:'message', text,
+    attachments:[{contentType:'application/vnd.microsoft.card.adaptive', content:{type:'AdaptiveCard', version:'1.4', $schema:'http://adaptivecards.io/schemas/adaptive-card.json', body:[{type:'TextBlock', text, wrap:true}]}}]})}));
+  const r = await Promise.allSettled(jobs);
+  toast(r.some(x => x.status === 'rejected') ? "Couldn't reach Slack or Teams. Check the webhook URL in Settings." : 'Message sent to your team channel.');
+}
+
+// ---------- render ----------
+function render(){
+  if (!S) return;
+  const dev = S.isDev;
+  $('devchip').hidden = !dev;
+  const pages = S.pages.filter(p => !p.divider);
+  const tabs = [
+    ['selection', `Selection${S.alerts.length ? '<span class="dot" title="Alerts"></span>' : ''}`],
+    ['screens', `Screens<span class="count">${S.groups.length}</span>`],
+    ['pages', `Pages<span class="count">${pages.length}</span>`],
+  ];
+  if (!dev) tabs.push(['settings','Settings']);
+  if (dev && tab === 'settings') tab = 'selection';
+  $('tabs').innerHTML = tabs.map(([k,l]) => `<button role="tab" aria-selected="${tab===k}" data-tab="${k}">${l}</button>`).join('');
+  let html = viewPending();
+  html += tab === 'selection' ? viewSelection() : tab === 'screens' ? viewScreens() : tab === 'pages' ? viewPages() : viewSettings();
+  $('pbody').innerHTML = html;
+}
+
+// ---------- confirmations ----------
+function viewPending(){
+  if (!pending) return '';
+  if (pending.kind === 'frame'){
+    const g = S.groups.find(x => x.versions.some(v => v.id === pending.id)); if (!g) return '';
+    const v = g.versions.find(x => x.id === pending.id);
+    const others = g.versions.filter(x => x.id !== v.id && !x.isCopy && x.building.length);
+    return `<div class="confirm"><h3>Mark ${esc(g.name)} v${v.version} as final?</h3>
+      <div class="warn">${others.map(o => `<b>${esc(o.building.map(b=>b.name).join(', '))}</b> ${o.building.length>1?'are':'is'} building v${o.version}.`).join(' ')}
+      They'll see an alert in Version Pin${S.notify && (S.notify.slack||S.notify.teams) ? ' and a message in your team channel' : ''}.</div>
+      <div class="row"><button class="btn primary" data-act="confirmFinal">Mark v${v.version} final</button><button class="btn" data-act="cancelPending">Cancel</button></div></div>`;
+  }
+  const p = S.pages.find(x => x.id === pending.id); if (!p) return '';
+  const others = S.pages.filter(x => !x.divider && x.id !== p.id);
+  const hasChannel = S.notify && (S.notify.slack || S.notify.teams);
+  if (pending.status === 'final'){
+    const list = others.map(o => `<label><input type="checkbox" data-alsoold="${o.id}" ${o.status==='final'||o.status==='old'&&o.finalPage===''?'checked':''}>
+      <span>${esc(o.base)} ${o.status ? pill(o.status) : ''}${o.building.length ? `<br><small>Being built by ${esc(o.building.map(b=>b.name).join(', '))}</small>` : ''}</span></label>`).join('');
+    return `<div class="confirm"><h3>Mark “${esc(p.base)}” as the final page</h3>
+      <div class="meta">Which pages does it replace? They'll be marked Old, get a red “not final” banner, and stay in the file as history.</div>
+      <div class="checks">${list || '<span class="meta">No other pages.</span>'}</div>
+      <div class="meta">${hasChannel ? 'Your team channel will get a message.' : 'Tip: connect Slack or Teams in Settings to notify developers.'}</div>
+      <div class="row"><button class="btn primary" data-act="confirmPageFinal">Mark final</button><button class="btn" data-act="cancelPending">Cancel</button></div></div>`;
+  }
+  const finals = others.filter(o => o.status === 'final');
+  return `<div class="confirm danger"><h3>Mark “${esc(p.base)}” as old?</h3>
+    <label class="field" for="finalpick">Which page should developers use instead?
+      <select id="finalpick">${finals.map(f => `<option value="${f.id}">${esc(f.base)}</option>`).join('')}${others.filter(o=>o.status!=='final').map(f => `<option value="${f.id}">${esc(f.base)} (not final yet)</option>`).join('')}<option value="">No final page yet</option></select></label>
+    ${p.building.length ? `<div class="warn"><b>${esc(p.building.map(b=>b.name).join(', '))}</b> ${p.building.length>1?'are':'is'} building this page. They'll get an alert${hasChannel ? ' and a message in your team channel' : ''}.</div>` : ''}
+    <div class="row"><button class="btn primary" data-act="confirmPageOld">Mark old</button><button class="btn" data-act="cancelPending">Cancel</button></div></div>`;
+}
+
+// ---------- selection ----------
+function viewAlerts(){
+  return S.alerts.map(a => `<div class="alert" role="alert"><b>Changed since you started building</b>
+    <p>${esc(a.text)}</p>${a.note ? `<div class="meta">What changed: ${esc(a.note)}</div>` : ''}
+    <div class="row">${a.finalId ? `<button class="btn small primary" data-act="switch" data-from="${a.id}" data-to="${a.finalId}">Switch to ${esc(a.finalLabel)}</button>
+      <button class="btn small" data-act="jump" data-id="${a.finalId}">View ${esc(a.finalLabel)}</button>` : ''}
+      <button class="btn small" data-act="unwatch" data-id="${a.id}">Dismiss</button></div></div>`).join('');
+}
+function viewPageStrip(){
+  const p = S.pages.find(x => x.id === S.currentPageId);
+  if (!p || p.divider) return '';
+  const fp = p.finalPage ? S.pages.find(x => x.id === p.finalPage) : null;
+  const msg = {old:"Old version, kept as history. Don't build from this page.", review:"In review. Don't build from this page yet.", draft:'Draft. Not ready to build.', final:'Final page. Build from this page.'}[p.status];
+  if (!p.status && !p.building.length) return '';
+  return `<div class="pstrip ${p.status}">
+    <div class="top"><span class="eyebrow">This page</span><b>${esc(p.base)}</b>${p.status ? pill(p.status) : ''}</div>
+    ${msg ? `<p>${msg}</p>` : ''}
+    ${p.building.length ? `<div class="builders">${buildChips(p.building)}</div>` : ''}
+    <div class="row">${fp ? `<button class="btn small primary" data-act="jump" data-id="${fp.id}">Go to final page “${esc(fp.base)}”</button>` : ''}
+      ${p.status === 'final' || mine(p.building) ? `<button class="btn small" data-act="build" data-id="${p.id}" data-on="${!mine(p.building)}">${mine(p.building) ? 'Stop building this page' : "I'm building this page"}</button>` : ''}</div>
+  </div>`;
+}
+
+function viewSelection(){
+  const top = viewAlerts() + viewPageStrip();
+  const c = S.context;
+  if (c.kind === 'tracked') return top + viewTracked(c);
+  if (c.kind === 'untracked' && c.count) return top + viewUntracked(c);
+  return top + `<div class="empty">
+    <h3>Select a frame to see which version it is</h3>
+    <p>${S.isDev ? 'Version Pin tells you whether the frame or page you are looking at is the one to build.' : 'Group the versions of a screen and mark one final. Use the Pages tab to mark whole pages. Older versions stay in the file as history.'}</p>
+    <ul class="legend">
+      <li>${pill('final')}<span>Approved. Developers build this one.</span></li>
+      <li>${pill('review')}<span>Waiting for feedback. Don't build yet.</span></li>
+      <li>${pill('draft')}<span>Work in progress or a newer exploration.</span></li>
+      <li>${pill('superseded')}<span>An old frame, kept for history and dimmed.</span></li>
+      <li>${pill('old')}<span>An old page, with a red banner and dimmed frames.</span></li>
+    </ul>
+  </div>`;
+}
+
+function viewTracked(c){
+  const g = S.groups.find(x => x.id === c.groupId);
+  if (!g) return '';
+  const v = g.versions.find(x => x.id === c.nodeId);
+  const fin = g.versions.find(x => x.id === g.finalId);
+  const dev = S.isDev;
+  const next = Math.max(0, ...g.versions.filter(x => !x.isCopy).map(x => x.version)) + 1;
+  const st = v.isCopy ? 'copy' : v.status;
+  let verdict, sub = '', action = '';
+
+  if (v.isCopy){
+    verdict = `This is a copy of v${v.version}. It isn't tracked as its own version.`;
+    sub = dev ? 'Ask the designer whether this copy matters.' : 'Duplicated frames carry the original’s version number. Track it so the history stays correct.';
+    if (!dev) action = `<button class="btn primary" data-act="renumber" data-id="${v.id}">Track as v${next}</button>`;
+  } else if (v.status === 'final'){
+    verdict = 'This is the final version. Build from this one.';
+    sub = `Marked final by ${by(v)}`;
+  } else if (fin){
+    if (v.status === 'superseded') verdict = `Don't build from this. v${fin.version} is the final version.`;
+    else if (v.version > fin.version) verdict = `Newer exploration, not approved. v${fin.version} is still final.`;
+    else verdict = `Work in progress. v${fin.version} is the final version.`;
+    action = `<button class="btn primary" data-act="jump" data-id="${fin.id}">Go to final v${fin.version}</button>`;
+  } else {
+    verdict = 'No final version has been chosen for this screen yet.';
+    sub = dev ? 'Check with the designer before you start building.' : 'Mark one version as final so developers know what to build.';
+  }
+
+  const hero = `<section class="hero ${st}">
+    <div class="eyebrow">${esc(g.name)}</div>
+    <div class="herorow"><span class="bigv">v${v.version}</span>${pill(st)}</div>
+    <p class="verdict">${verdict}</p>
+    ${sub ? `<div class="meta">${sub}</div>` : ''}
+    ${action ? `<div class="row">${action}</div>` : ''}
+  </section>`;
+
+  const building = v.isCopy ? '' : `<div class="section"><h2>Being built</h2>
+    ${v.building.length ? `<div class="builders">${buildChips(v.building)}</div>` : `<span class="meta">Nobody has said they're building v${v.version} yet.</span>`}
+    <div class="row"><button class="btn small" data-act="build" data-id="${v.id}" data-on="${!mine(v.building)}">${mine(v.building) ? 'Stop building' : `I'm building v${v.version}`}</button></div>
+    ${dev && !mine(v.building) ? `<span class="meta">You'll get an alert here if another version becomes final.</span>` : ''}
+  </div>`;
+
+  const statusCtl = (!dev && !v.isCopy) ? `<div class="section"><h2>Status of v${v.version}</h2>
+    <div class="seg" role="group" aria-label="Status">${['draft','review','final','superseded'].map(s =>
+      `<button aria-pressed="${v.status===s}" data-act="status" data-id="${v.id}" data-status="${s}">${LABEL[s]}</button>`).join('')}</div>
+    ${v.status !== 'final' ? `<div class="meta">Marking it final makes older versions superseded. Newer drafts keep their status.</div>` : ''}
+  </div>` : '';
+
+  const note = v.isCopy ? '' : dev
+    ? (v.note ? `<div class="section"><h2>What changed</h2><div class="note">${esc(v.note)}</div></div>` : '')
+    : `<div class="section"><label class="field" for="note">What changed in v${v.version}
+        <textarea id="note" data-id="${v.id}" placeholder="e.g. Moved CTA above the fold after usability test">${esc(v.note)}</textarea></label></div>`;
+
+  const list = [...g.versions].reverse().map(x => {
+    const s = x.isCopy ? 'copy' : x.status;
+    return `<li class="${x.id===v.id?'current':''}" data-act="jump" data-id="${x.id}" tabindex="0" role="button" aria-label="Go to v${x.version}">
+      <span class="v">v${x.version}</span>
+      <span class="nm"><b>${esc(x.name)}</b><span>${x.building.length ? 'Being built by ' + esc(x.building.map(b=>b.name).join(', ')) + ' · ' : ''}${by(x)}</span></span>
+      <span class="right">${pill(s)}${(!dev && !x.isCopy && x.status!=='final') ? `<button class="setfinal" data-act="status" data-id="${x.id}" data-status="final">Set final</button>` : ''}</span>
+    </li>`;
+  }).join('');
+
+  return hero + building + statusCtl + note + `<div class="section"><h2>All versions · ${g.versions.length}</h2><ol class="timeline">${list}</ol></div>`;
+}
+
+function viewUntracked(c){
+  if (S.isDev) return `<div class="empty"><h3>This frame isn't tracked</h3>
+    <p>No version information exists for it. Check the page status above, or ask the designer which frame is final.</p></div>`;
+  const n = c.count;
+  const opts = S.groups.map(g => `<option value="${g.id}">${esc(g.name)} (next: v${Math.max(0,...g.versions.filter(x=>!x.isCopy).map(x=>x.version))+1})</option>`).join('');
+  return `<div class="section">
+    <h3>${n} frame${n>1?'s':''} not tracked yet</h3>
+    <p class="meta" style="margin:0">Group the versions of one screen. They are numbered left to right, so put the newest on the right.</p>
+  </div>
+  <div class="section">
+    <label class="field" for="gname">Screen name<input type="text" id="gname" value="${esc(c.suggestedName)}"></label>
+    <button class="btn primary" data-act="create">Track as ${n>1 ? `v1–v${n}` : 'v1'}</button>
+  </div>
+  ${S.groups.length ? `<div class="section"><h2>Or add to an existing screen</h2>
+    <select id="gsel" aria-label="Existing screen">${opts}</select>
+    <button class="btn" data-act="add">Add as next version</button></div>` : ''}`;
+}
+
+// ---------- screens ----------
+function viewScreens(){
+  const missing = S.groups.filter(g => !g.finalId).length;
+  const gs = S.groups.filter(g => filter === 'all' || !g.finalId);
+  const head = `<div class="summary">
+      <div class="stat"><b>${S.groups.length}</b><span>screens tracked</span></div>
+      <div class="stat"><b style="color:var(--final)">${S.groups.length - missing}</b><span>have a final</span></div>
+      <div class="stat"><b style="color:${missing?'var(--review)':'inherit'}">${missing}</b><span>missing a final</span></div>
+    </div>
+    <div class="chips" role="group" aria-label="Filter">
+      <button aria-pressed="${filter==='all'}" data-filter="all">All</button>
+      <button aria-pressed="${filter==='missing'}" data-filter="missing">Missing final · ${missing}</button>
+    </div>`;
+  if (!S.groups.length) return head + `<p class="meta">No screens tracked yet. Select the versions of a screen on the canvas to start.</p>`;
+  if (!gs.length) return head + `<p class="meta">Every screen has a final version.</p>`;
+  const cards = gs.map(g => {
+    const fin = g.versions.find(x => x.id === g.finalId);
+    const old = g.versions.filter(x => x.status === 'superseded' && !x.isCopy && x.page !== 'Version archive').length;
+    const copies = g.versions.filter(x => x.isCopy).length;
+    const builders = g.versions.flatMap(x => x.building.map(b => `${b.name} (v${x.version})`));
+    const open = expanded.has(g.id);
+    const rows = [...g.versions].reverse().map(x => `<li data-act="jump" data-id="${x.id}" tabindex="0" role="button">
+        <span class="v">v${x.version}</span><span class="nm"><b>${esc(x.name)}</b><span>${x.page==='Version archive'?'Archived · ':''}${by(x)}</span></span>
+        <span class="right">${pill(x.isCopy?'copy':x.status)}</span></li>`).join('');
+    const confirm = confirmUntrack === g.id ? `<div class="confirm danger"><b>Stop tracking “${esc(g.name)}”?</b>
+        <span class="meta">The ${g.versions.length} frames stay where they are. Badges, labels and dimming are removed.</span>
+        <div class="row"><button class="btn small danger" data-act="untrack" data-gid="${g.id}">Stop tracking</button><button class="btn small" data-act="cancel">Cancel</button></div></div>` : '';
+    return `<article class="gcard">
+      <button class="ghead" data-toggle="${g.id}" aria-expanded="${open}">
+        <b>${esc(g.name)}</b>${fin ? `<span class="pill final">Final v${fin.version}</span>` : `<span class="pill warn">No final</span>`}
+        <span class="meta">${g.versions.length} versions${copies ? ` · ${copies} untracked cop${copies>1?'ies':'y'}` : ''}${builders.length ? ` · being built: ${esc(builders.join(', '))}` : ''}</span>
+      </button>
+      ${open ? `<div class="gbody"><ol class="timeline">${rows}</ol>
+        <div class="gactions">
+          ${fin ? `<button class="btn small" data-act="jump" data-id="${fin.id}">Go to final</button>` : ''}
+          ${!S.isDev && old ? `<button class="btn small" data-act="archive" data-gid="${g.id}">Move ${old} old to archive page</button>` : ''}
+          ${!S.isDev ? `<button class="btn small danger" data-act="askuntrack" data-gid="${g.id}">Stop tracking</button>` : ''}
+        </div>${confirm}</div>` : ''}
+    </article>`;
+  }).join('');
+  return head + `<div class="section">${cards}</div>`;
+}
+
+// ---------- pages ----------
+function viewPages(){
+  const pages = S.pages.filter(p => !p.divider);
+  const count = (s) => pages.filter(p => p.status === s).length;
+  const oldActive = pages.filter(p => p.status === 'old' && !p.archived).length;
+  const head = `<div class="summary">
+      <div class="stat"><b style="color:var(--final)">${count('final')}</b><span>final</span></div>
+      <div class="stat"><b style="color:var(--review)">${count('review') + count('draft')}</b><span>in progress</span></div>
+      <div class="stat"><b style="color:var(--old)">${count('old')}</b><span>old</span></div>
+    </div>
+    ${!S.isDev ? `<div class="row"><button class="btn small" data-act="archivePages" ${oldActive ? '' : 'disabled'}>${oldActive ? `Move ${oldActive} old page${oldActive===1?'':'s'} below the archive divider` : 'No old pages to archive'}</button></div>` : ''}`;
+  const rows = S.pages.map(p => {
+    if (p.divider) return `<li class="pdiv">Archive</li>`;
+    const fp = p.finalPage ? S.pages.find(x => x.id === p.finalPage) : null;
+    const sel = `<select data-pstatus="${p.id}" aria-label="Status of ${esc(p.base)}">${['none','draft','review','final','old'].map(s => `<option value="${s}" ${(p.status||'none')===s?'selected':''}>${LABEL[s]}</option>`).join('')}</select>`;
+    return `<li class="prow ${p.current?'current':''} ${p.archived?'archived':''}">
+      <div class="ptop"><button class="pname" data-act="jump" data-id="${p.id}" title="Open page">${esc(p.base)}</button>${pill(p.status || 'none')}</div>
+      ${(fp || p.building.length || p.current) ? `<div class="meta">${fp ? `Final page: “${esc(fp.base)}”` : ''}${fp && p.current ? ' · ' : ''}${p.current ? 'You are here' : ''}</div>` : ''}
+      ${p.building.length ? `<div class="builders">${buildChips(p.building)}</div>` : ''}
+      <div class="row">${!S.isDev ? sel : ''}
+        <button class="btn small" data-act="build" data-id="${p.id}" data-on="${!mine(p.building)}">${mine(p.building) ? 'Stop building' : "I'm building this page"}</button></div>
+    </li>`;
+  }).join('');
+  return head + `<ol class="plist">${rows}</ol>
+    <p class="meta" style="margin:0">Pages always stay visible in Figma. Version Pin adds the status to the page name, puts a banner at the top of the page and dims old pages.</p>`;
+}
+
+// ---------- settings ----------
+function viewSettings(){
+  const t = (k, title, desc) => `<label class="toggle" for="set-${k}"><b>${title}</b><span>${desc}</span>
+    <input type="checkbox" id="set-${k}" data-setting="${k}" ${S.settings[k]?'checked':''}></label>`;
+  const n = S.notify || {};
+  const nt = (k, title, desc) => `<label class="toggle" for="n-${k}"><b>${title}</b><span>${desc}</span>
+    <input type="checkbox" id="n-${k}" data-ncfg="${k}" ${n[k]?'checked':''}></label>`;
+  return `<div class="section" style="gap:0"><h2>Frames</h2>
+    ${t('badges','Badges on canvas','A label next to each version: FINAL · v3, or v2 · SUPERSEDED → final is v3.')}
+    <div class="toggle" style="grid-template-columns:1fr">
+      <b>Badge position</b>
+      <span>You can also drag any badge on the canvas. The plugin keeps it where you put it.</span>
+      <div class="row" style="grid-column:1;margin-top:6px">
+        <select id="set-badgePlace" data-settingval="badgePlace" style="width:auto" aria-label="Badge position">
+          ${[['above','Above the frame'],['below','Below the frame'],['left','Left of the frame']].map(([v,l]) => `<option value="${v}" ${S.settings.badgePlace===v?'selected':''}>${l}</option>`).join('')}
+        </select>
+        <label class="meta" for="set-badgeGap" style="display:flex;align-items:center;gap:6px">Gap
+          <input type="number" id="set-badgeGap" data-settingval="badgeGap" min="0" max="2000" step="8" value="${S.settings.badgeGap}" style="width:72px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;background:var(--panel);color:var(--fg)"> px</label>
+        <button class="btn small" data-act="resetBadges">Reset dragged badges</button>
+      </div>
+    </div>
+    ${t('dim','Dim superseded versions','Old frames fade to 45% opacity.')}
+    ${t('rename','Version in layer names','Adds “· v3 ✓ FINAL” to frame names.')}
+    ${t('devStatus','Mark final as Ready for dev','Uses Figma’s own Dev Mode status.')}
+  </div>
+  <div class="section" style="gap:0"><h2>Pages</h2>
+    ${t('pageNames','Status in page names','✅ FINAL – Checkout, ⛔ OLD – Checkout v2.')}
+    ${t('pageBanners','Banner at the top of each page','A large colored banner: “NOT FINAL · use the page Checkout instead”.')}
+    ${t('dimOldPages','Dim frames on old pages','Everything on an old page fades to 45% opacity.')}
+  </div>
+  <div class="section"><h2>Team notifications</h2>
+    <p class="meta" style="margin:0">Post a message when a screen or page becomes final or old. Shared with everyone using Version Pin in this file.</p>
+    <label class="field" for="n-slack">Slack incoming webhook URL<input type="url" id="n-slack" placeholder="https://hooks.slack.com/services/…" value="${esc(n.slack)}"></label>
+    <label class="field" for="n-teams">Microsoft Teams workflow URL<input type="url" id="n-teams" placeholder="https://…logic.azure.com/…" value="${esc(n.teams)}"></label>
+    <div style="display:flex;flex-direction:column">
+      ${nt('onFrames','When a screen version becomes final','e.g. “Login: v4 is now FINAL (replaces v3)”.')}
+      ${nt('onPages','When a page changes status','Final, old or in review.')}
+    </div>
+    <div class="row"><button class="btn primary" data-act="saveNotify">Save</button><button class="btn" data-act="testNotify">Send test message</button></div>
+  </div>
+  <div class="row"><button class="btn" data-act="refresh">Refresh badges, banners and labels</button></div>
+  <p class="meta" style="margin:0">Version data is stored on frames and pages, so everyone with the plugin sees the same thing. Display settings are per person.</p>`;
+}
+function notifyCfg(){
+  return {slack:$('n-slack').value.trim(), teams:$('n-teams').value.trim(),
+    onFrames:$('n-onFrames').checked, onPages:$('n-onPages').checked};
+}
+
+// ---------- events ----------
+function askFinal(id){
+  const g = S.groups.find(x => x.versions.some(v => v.id === id));
+  const busy = g && g.versions.some(x => x.id !== id && !x.isCopy && x.building.length);
+  if (busy){ pending = {kind:'frame', id}; render(); $('pbody').scrollTop = 0; window.scrollTo && document.querySelector('.panel').scrollIntoView({block:'nearest'}); }
+  else send({type:'status', id, status:'final'});
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-act],[data-filter],[data-toggle]');
+  if (!t || t.disabled) return;
+  if (t.dataset.tab){ tab = t.dataset.tab; render(); return; }
+  if (t.dataset.filter){ filter = t.dataset.filter; render(); return; }
+  if (t.dataset.toggle){ const id = t.dataset.toggle; expanded.has(id) ? expanded.delete(id) : expanded.add(id); render(); return; }
+  e.stopPropagation();
+  const a = t.dataset.act, id = t.dataset.id;
+  switch (a){
+    case 'jump': send({type:'jump', id}); break;
+    case 'status': t.dataset.status === 'final' ? askFinal(id) : send({type:'status', id, status:t.dataset.status}); break;
+    case 'confirmFinal': send({type:'status', id:pending.id, status:'final'}); pending = null; break;
+    case 'cancelPending': pending = null; render(); break;
+    case 'confirmPageFinal': {
+      const alsoOld = [...document.querySelectorAll('[data-alsoold]:checked')].map(x => x.dataset.alsoold);
+      send({type:'pageStatus', id:pending.id, status:'final', opts:{alsoOld}}); pending = null; break;
+    }
+    case 'confirmPageOld': send({type:'pageStatus', id:pending.id, status:'old', opts:{finalPageId:$('finalpick').value}}); pending = null; break;
+    case 'renumber': send({type:'renumber', id}); break;
+    case 'create': send({type:'create', name:$('gname').value}); break;
+    case 'add': send({type:'add', groupId:$('gsel').value}); break;
+    case 'archive': send({type:'archive', groupId:t.dataset.gid}); break;
+    case 'archivePages': send({type:'archivePages'}); break;
+    case 'askuntrack': confirmUntrack = t.dataset.gid; render(); break;
+    case 'cancel': confirmUntrack = null; render(); break;
+    case 'untrack': confirmUntrack = null; send({type:'untrack', groupId:t.dataset.gid}); break;
+    case 'refresh': send({type:'refresh'}); break;
+    case 'resetBadges': send({type:'resetBadges'}); break;
+    case 'build': send({type:'building', id, on:t.dataset.on === 'true'}); break;
+    case 'switch': send({type:'switchBuilding', from:t.dataset.from, to:t.dataset.to}); break;
+    case 'unwatch': send({type:'unwatch', id}); break;
+    case 'saveNotify': send({type:'setNotify', cfg:notifyCfg()}); break;
+    case 'testNotify': send({type:'setNotify', cfg:notifyCfg()}); send({type:'testNotify'}); break;
+  }
+}, true);
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('li[data-act]')){ e.preventDefault(); e.target.click(); }
+  if (e.key === 'Enter' && e.target.id === 'gname') send({type:'create', name:e.target.value});
+});
+document.addEventListener('change', e => {
+  const d = e.target.dataset;
+  if (d.setting) send({type:'settings', settings:{[d.setting]: e.target.checked}});
+  if (d.settingval) send({type:'settings', settings:{[d.settingval]: e.target.type === 'number' ? +e.target.value : e.target.value}});
+  if (d.ncfg) send({type:'setNotify', cfg:notifyCfg()});
+  if (e.target.id === 'note') send({type:'note', id:d.id, note:e.target.value});
+  if (d.pstatus){
+    const v = e.target.value;
+    if (v === 'final' || v === 'old'){ pending = {kind:'page', id:d.pstatus, status:v}; render(); }
+    else send({type:'pageStatus', id:d.pstatus, status:v});
+  }
+});
+
+// =====================================================================
+// Demo: outside Figma, run the real plugin code (code.js) against a small
+// in-memory imitation of the Figma Plugin API, and draw the file as a canvas.
+// =====================================================================
+if (MODE !== 'demo') return;
+const CODE = $('vp-code').textContent;
+let seq = 0;
+class Node {
+  constructor(type, props){
+    this.id = (type === 'PAGE' ? '0:' : '1:') + (++seq);
+    Object.assign(this, {type, name:'', parent:null, children:[], x:0, y:0, width:120, height:24, opacity:1, removed:false, characters:'', _sp:{}, _p:{}});
+    if (type === 'FRAME') this.devStatus = null;
+    if (type === 'PAGE') this.selection = [];
+    Object.assign(this, props || {});
+  }
+  getSharedPluginData(ns, k){ return this._sp[k] || ''; }
+  setSharedPluginData(ns, k, v){ this._sp[k] = v; }
+  getPluginData(k){ return this._p[k] || ''; }
+  setPluginData(k, v){ this._p[k] = v; }
+  setRelaunchData(){}
+  appendChild(c){ this.insertChild(this.children.length, c); }
+  insertChild(i, c){
+    if (c.parent){ const j = c.parent.children.indexOf(c); c.parent.children.splice(j, 1); if (c.parent === this && j < i) i--; }
+    c.parent = this; this.children.splice(Math.min(i, this.children.length), 0, c);
+  }
+  remove(){ if (this.parent) this.parent.children.splice(this.parent.children.indexOf(this), 1); this.parent = null; this.removed = true; }
+  get absoluteTransform(){ return [[1,0,this.x],[0,1,this.y]]; }
+  get isPageDivider(){ return this.type === 'PAGE' && /^[-–—*\s]+$/.test(this.name); }
+  resize(w, h){ this.width = w; this.height = h; }
+  async loadAsync(){}
+  findAll(pred){ const out = []; const walk = n => n.children.forEach(c => { if (pred(c)) out.push(c); walk(c); }); walk(this); return out; }
+  findAllWithCriteria(c){ const k = c.sharedPluginData.keys[0]; return this.findAll(n => n._sp[k]); }
+}
+const doc = new Node('DOCUMENT', {name:'Mobile app – handoff'});
+let current = null;
+const store = {};
+const feed = [];
+let fig = null, seeding = false;
+const byId = (id) => { if (doc.id === id) return doc; const f = doc.findAll(n => n.id === id); return f[0] || null; };
+
+function makeFigma(mode){
+  const user = {name: mode === 'dev' ? 'Ahmed (Dev)' : 'Mona (Designer)'};
+  const handlers = {};
+  const f = {
+    editorType: mode === 'dev' ? 'dev' : 'figma', currentUser: user, root: doc, fileKey: undefined,
+    get currentPage(){ return current; },
+    async setCurrentPageAsync(p){ current = p; fire('currentpagechange'); },
+    async loadAllPagesAsync(){}, async getNodeByIdAsync(id){ return byId(id); }, async loadFontAsync(){},
+    showUI(){}, ui: {postMessage: (m) => { if (seeding && m.type !== 'state') return; receive(m); }, onmessage: null},
+    on(ev, fn){ (handlers[ev] = handlers[ev] || []).push(fn); }, _h: handlers,
+    clientStorage: {getAsync: async k => store[user.name + '/' + k], setAsync: async (k, v) => { store[user.name + '/' + k] = JSON.parse(JSON.stringify(v)); }},
+    viewport: {scrollAndZoomIntoView(nodes){ setTimeout(() => flash(nodes[0] && nodes[0].id), 90); }},
+    createPage(){ const p = new Node('PAGE'); doc.appendChild(p); return p; },
+    createFrame(){ const n = new Node('FRAME'); current.appendChild(n); return n; },
+    createText(){ return new Node('TEXT'); },
+  };
+  return f;
+}
+function fire(ev){ (fig._h[ev] || []).forEach(fn => fn()); }
+function boot(mode){
+  fig = makeFigma(mode);
+  new Function('figma', '__html__', CODE)(fig, '');
+  send = (msg) => fig.ui.onmessage && fig.ui.onmessage(msg);
+}
+onNotify = (m) => { feed.unshift({text:m.text, at:new Date().toISOString()}); drawFeed(); toast('Posted to #design-handoff.'); };
+const act = (msg) => fig.ui.onmessage(msg);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// ---------- the sample file ----------
+function page(name){ const p = new Node('PAGE', {name}); doc.appendChild(p); return p; }
+function frame(p, name, x, y, hue){ const n = new Node('FRAME', {name, x, y, width:375, height:812, hue}); p.appendChild(n); return n; }
+const P1 = page('Login & Checkout');
+const P2 = page('Onboarding – round 1');
+const P3 = page('Onboarding – round 2');
+const P4 = page('Onboarding – round 3');
+const P5 = page('Onboarding');
+current = P1;
+const L = [220, 200, 160, 280].map((h, i) => frame(P1, 'Login', i * 500, 0, h));
+const C = [30, 10].map((h, i) => frame(P1, 'Checkout', i * 500, 1200, h));
+frame(P1, 'Profile', 0, 2400, 120); frame(P1, 'Profile copy', 500, 2400, 100);
+[[P2, 250], [P3, 190], [P4, 40], [P5, 150]].forEach(([p, h]) =>
+  ['Welcome', 'Permissions', 'All set'].forEach((nm, i) => frame(p, nm, i * 500, 0, h + i * 12)));
+
+async function seed(){
+  seeding = true;
+  boot('figma');
+  await sleep(40);
+  doc.setPluginData('notify', JSON.stringify({slack:'https://hooks.slack.com/services/T000/B000/example', teams:'', onFrames:true, onPages:true}));
+  P1.selection = L; await act({type:'create', name:'Login'});
+  await act({type:'note', id:L[0].id, note:'First pass from the wireframes.'});
+  await act({type:'note', id:L[1].id, note:'Added social sign-in.'});
+  await act({type:'status', id:L[2].id, status:'final'});
+  await act({type:'note', id:L[2].id, note:'Approved in Thursday review. Social buttons moved below the form.'});
+  await act({type:'note', id:L[3].id, note:'Passwordless sign-in: magic link replaces the password field.'});
+  P1.selection = C; await act({type:'create', name:'Checkout'});
+  await act({type:'status', id:C[0].id, status:'review'});
+  await act({type:'status', id:C[1].id, status:'review'});
+  // someone duplicated Checkout v2: plugin data travels with the copy
+  const dup = frame(P1, 'Checkout · v2', 1000, 1200, 350); dup._sp = Object.assign({}, C[1]._sp, {badgeId:''});
+  await act({type:'pageStatus', id:P5.id, status:'final', opts:{alsoOld:[P2.id, P3.id]}});
+  await act({type:'pageStatus', id:P4.id, status:'review'});
+  await act({type:'pageNote', id:P5.id, note:'Merged round 3 feedback: shorter permissions copy.'});
+  // history and builders
+  const D = 864e5, back = (n, ms) => n._sp.updatedAt = new Date(Date.now() - ms).toISOString();
+  back(L[0], 9*D); back(L[1], 4*D); back(L[2], 2*D); back(L[3], 5*36e5); back(C[0], 3*D); back(C[1], D); back(dup, D);
+  [P2, P3].forEach(p => back(p, 6*D)); back(P5, 3*D); back(P4, 2*D);
+  L[2]._sp.updatedBy = 'Karim (Lead)';
+  L[2]._sp.building = JSON.stringify([{name:'Ahmed (Dev)', since:new Date(Date.now() - 2*D).toISOString(), version:3}]);
+  P5._sp.building = JSON.stringify([{name:'Ahmed (Dev)', since:new Date(Date.now() - D).toISOString()}, {name:'Sara (Dev)', since:new Date(Date.now() - D).toISOString()}]);
+  store['Ahmed (Dev)/watch'] = [
+    {id:L[2].id, kind:'frame', status:'final', label:'Login v3', at:Date.now()},
+    {id:P5.id, kind:'page', status:'final', label:'Onboarding', at:Date.now()},
+  ];
+  await act({type:'refresh'});
+  current = P1; P1.selection = [L[1]];
+  seeding = false;
+  fire('selectionchange');
+}
+
+// ---------- drawing the mock file ----------
+const isB = (n) => n._sp.isBadge === '1' || n._sp.isBanner === '1';
+function draw(){
+  const dev = fig.editorType === 'dev';
+  $('m-design').setAttribute('aria-pressed', !dev); $('m-dev').setAttribute('aria-pressed', dev);
+  $('who').textContent = dev ? 'Signed in as Ahmed, developer (view only)' : 'Signed in as Mona, designer';
+  $('pagelist').innerHTML = '<div class="lbl">Pages</div>' + doc.children.map(p => p.isPageDivider
+    ? '<hr aria-hidden="true">'
+    : `<button data-page="${p.id}" ${p === current ? 'aria-current="page"' : ''} title="${esc(p.name)}">${esc(p.name)}</button>`).join('');
+  $('chint').textContent = dev ? 'Dev Mode: click a frame to inspect it.' : 'Click a frame to select it. Shift-click to select several.';
+  const kids = current.children;
+  const banner = kids.find(n => n._sp.isBanner === '1');
+  const frames = kids.filter(n => !isB(n) && n.type === 'FRAME');
+  let html = '';
+  if (banner){
+    const [t1, t2, btn] = banner.children;
+    const fp = current._sp.finalPage;
+    html += `<div class="cbanner ${current._sp.pstatus}"><b>${esc(t1 && t1.characters)}</b><span>${esc(t2 && t2.characters)}</span>
+      ${btn ? `<button class="cbtn" data-page="${fp}">${esc(btn.children[0].characters)}</button>` : ''}</div>`;
+  }
+  if (!frames.length) html += '<div class="empty-canvas">This page is empty.</div>';
+  const rows = {};
+  frames.forEach(f => (rows[f.y] = rows[f.y] || []).push(f));
+  Object.keys(rows).sort((a, b) => a - b).forEach(y => {
+    html += `<div class="crow">${rows[y].sort((a, b) => a.x - b.x).map(f => frameHTML(f, kids)).join('')}</div>`;
+  });
+  $('canvas').innerHTML = html;
+}
+function frameHTML(f, kids){
+  const badge = kids.find(n => n._sp.isBadge === '1' && n._sp.for === f.id);
+  const st = f._sp.status || 'draft';
+  const b = badge ? `<span class="cbadge ${st}">${esc(badge.children[0] && badge.children[0].characters)}</span>` : '<span class="cbadge ghost">.</span>';
+  const sel = current.selection.includes(f);
+  const v = +f._sp.version || 1;
+  return `<div class="fwrap">${b}<div class="fname" title="${esc(f.name)}">${esc(f.name)}</div>
+    <button class="frame ${sel ? 'sel' : ''}" data-fid="${f.id}" style="--h:${f.hue};opacity:${f.opacity}" aria-label="${esc(f.name)}" aria-pressed="${sel}">
+      <i class="bar"></i>${v % 2 ? '<i class="img"></i>' : ''}<i class="hd"></i><i class="ln" style="width:90%"></i><i class="ln" style="width:60%"></i>
+      <i class="in"></i>${v > 1 ? '<i class="in"></i>' : ''}<i class="cta"></i>
+    </button>${f.devStatus ? '<span class="rfd">● Ready for dev</span>' : '<span class="rfd" style="visibility:hidden">.</span>'}</div>`;
+}
+function drawFeed(){
+  $('feed').innerHTML = feed.length ? feed.map(m => `<li><span class="av" aria-hidden="true">VP</span><div class="msg"><small>Version Pin · ${ago(m.at)}</small>${esc(m.text)}</div></li>`).join('')
+    : '<span class="none">Nothing posted yet. Mark a screen or page final and the message appears here.</span>';
+}
+function flash(id){
+  const el = document.querySelector(`[data-fid="${id}"]`); if (!el) return;
+  el.scrollIntoView({block:'nearest', inline:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+window.__vpDraw = draw;
+
+document.addEventListener('click', e => {
+  const pg = e.target.closest('[data-page]');
+  if (pg){ pending = null; fig.setCurrentPageAsync(byId(pg.dataset.page)); return; }
+  if (e.target.closest('#m-design')){ if (fig.editorType !== 'figma'){ pending = null; boot('figma'); } return; }
+  if (e.target.closest('#m-dev')){ if (fig.editorType !== 'dev'){ pending = null; tab = 'selection'; boot('dev'); } return; }
+  const fr = e.target.closest('[data-fid]');
+  if (fr){
+    const n = byId(fr.dataset.fid);
+    if (e.shiftKey && fig.editorType !== 'dev') current.selection = current.selection.includes(n) ? current.selection.filter(x => x !== n) : [...current.selection, n];
+    else current.selection = [n];
+    if (!e.shiftKey) tab = 'selection';
+    fire('selectionchange'); return;
+  }
+  if (e.target.closest('#canvas')){ current.selection = []; fire('selectionchange'); }
+});
+drawFeed();
+seed();
+})();
+</script>
